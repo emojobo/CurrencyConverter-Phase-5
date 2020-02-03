@@ -16,15 +16,16 @@ public class CurrencyConverter extends JPanel implements ActionListener, ItemLis
     private static JFrame converter, exchangeFrame;
     private static JTabbedPane tab;
     private static JComboBox convertFrom, convertTo, deleteDrop, editDrop;
-    private static JTextField txtFrom, txtTo, abbrvTxt, currTxt;
+    private static JTextField txtFrom, txtTo, abbrvTxt, currTxt, exchTxt;
     private static JButton compute, exit, add, edit, delete, confirm, back;
-    private static JLabel from, to, lblFrom, lblTo, abbrvLbl, currLbl, title;
+    private static JLabel from, to, lblFrom, lblTo, abbrvLbl, currLbl, exchLbl, title;
 
     private double input = 0;
     private double result = 0;
 
     private String abbrv;
     private String currency;
+    private String rate;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
@@ -73,8 +74,7 @@ public class CurrencyConverter extends JPanel implements ActionListener, ItemLis
         functionPanel.add(lblFrom);
 
         convertFrom = new JComboBox();
-        ConverterFunctions.populateCurrencyDropdown(convertFrom);
-        convertFrom.setSelectedItem(convertFrom.getSelectedItem().equals("USD:United States Dollar"));
+        ConverterFunctions.populateConvertFrom(convertFrom);
         convertFrom.setEditable(false);
         functionPanel.add(convertFrom);
 
@@ -121,11 +121,11 @@ public class CurrencyConverter extends JPanel implements ActionListener, ItemLis
         JPanel functionPanel = new JPanel();
 
         abbrvLbl = new JLabel();
-        abbrvLbl.setText("Enter abbreviation of new currency:");
+        abbrvLbl.setText("Enter abbreviation of the new currency:");
         functionPanel.add(abbrvLbl);
 
         abbrvTxt = new JTextField();
-        abbrvTxt.setColumns(15);
+        abbrvTxt.setColumns(16);
         functionPanel.add(abbrvTxt);
 
         currLbl = new JLabel();
@@ -133,74 +133,26 @@ public class CurrencyConverter extends JPanel implements ActionListener, ItemLis
         functionPanel.add(currLbl);
 
         currTxt = new JTextField();
-        currTxt.setColumns(20);
+        currTxt.setColumns(17);
         functionPanel.add(currTxt);
+
+        exchLbl = new JLabel();
+        exchLbl.setText("Enter the exchange rate from new to USD:");
+        functionPanel.add(exchLbl);
+
+        exchTxt = new JTextField();
+        exchTxt.setColumns(16);
+        functionPanel.add(exchTxt);
 
         add = new JButton("Add");
         functionPanel.add(add);
 
         abbrvTxt.addActionListener(this);
         currTxt.addActionListener(this);
+        exchTxt.addActionListener(this);
         add.addActionListener(this);
 
         return functionPanel;
-    }
-
-    private JFrame addExchangeRateFrame(Properties exchange, Properties currency, String abbrv) {
-        exchangeFrame = new JFrame();
-        exchangeFrame.setVisible(true);
-        exchangeFrame.setLayout(null);
-        exchangeFrame.setBackground(Color.lightGray);
-        exchangeFrame.setSize(500, 400);
-        exchangeFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
-        title = new JLabel();
-        title.setText("Input the exchange rates for the new currency");
-        title.setBounds(100, 15, 300, 30);
-        exchangeFrame.add(title);
-
-        Integer y = 45;
-        Set<String> prop = currency.stringPropertyNames();
-        Iterator<String> itr = prop.iterator();
-        while (itr.hasNext()) {
-            if(!itr.equals(abbrv)) {
-                lblFrom = new JLabel("Input the exchange rate for " + abbrv + " to " + itr.next());
-                lblFrom.setBounds(30, y, 230, 30);
-                exchangeFrame.add(lblFrom);
-
-                y = y + 25;
-
-                txtFrom = new JTextField(15);
-                txtFrom.setBounds(30, y, 230, 30);
-                exchangeFrame.add(txtFrom);
-
-                lblTo = new JLabel("Input the exchange rate for " + itr.next() + " to " + abbrv);
-                lblTo.setBounds(280, y, 230, 30);
-                exchangeFrame.add(lblTo);
-
-                y = y + 25;
-
-                txtFrom = new JTextField(15);
-                txtFrom.setBounds(280, y, 230, 30);
-                exchangeFrame.add(txtFrom);
-
-                y = y + 25;
-            }
-        }
-
-        confirm = new JButton("Confirm");
-        confirm.setBounds(30, y+25, 150, 30);
-        exchangeFrame.add(confirm);
-
-        back = new JButton("Back");
-        back.setBounds(190, y+25, 150, 30);
-        exchangeFrame.add(back);
-
-        txtFrom.addActionListener(this);
-        confirm.addActionListener(this);
-        back.addActionListener(this);
-
-        return exchangeFrame;
     }
 
     private JPanel editTab() {
@@ -251,29 +203,26 @@ public class CurrencyConverter extends JPanel implements ActionListener, ItemLis
                     case "Add":
                         abbrv = abbrvTxt.getText();
                         currency = currTxt.getText();
+                        rate = exchTxt.getText();
 
                         ConverterFunctions.add(abbrv, currency, curr);
-                        convertFrom.removeAllItems();
-                        ConverterFunctions.refreshCurrencyDropdown(convertFrom, curr);
+                        ConverterFunctions.addExchangeRate(exchange, curr, abbrv, rate);
+
                         convertTo.removeAllItems();
                         ConverterFunctions.refreshCurrencyDropdown(convertTo, curr);
                         deleteDrop.removeAllItems();
                         ConverterFunctions.refreshCurrencyDropdown(deleteDrop, curr);
-
-                        addExchangeRateFrame(exchange, curr, abbrv);
 
                         tab.revalidate();
                         tab.repaint();
                         break;
                     case "Confirm":
                         String exchangeRate = txtFrom.getText();
-                        ConverterFunctions.addExchangeRate(exchange, curr, abbrv);
+                        ConverterFunctions.addExchangeRate(exchange, curr, abbrv, rate);
                         break;
                     case "Delete":
                         ConverterFunctions.delete(deleteDrop, curr);
 
-                        convertFrom.removeAllItems();
-                        ConverterFunctions.refreshCurrencyDropdown(convertFrom, curr);
                         convertTo.removeAllItems();
                         ConverterFunctions.refreshCurrencyDropdown(convertTo, curr);
 

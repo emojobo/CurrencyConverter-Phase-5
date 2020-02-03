@@ -12,6 +12,34 @@ import java.util.Map;
 import java.util.Properties;
 
 public class ConverterFunctions {
+    public static void populateConvertFrom(JComboBox from) {
+        Properties curr = new Properties();
+
+        try (InputStream stream = CurrencyConverter.class.getClassLoader().getResourceAsStream("currencies.properties")) {
+            curr.load(CurrencyConverter.class.getClassLoader().getResourceAsStream("currencies.properties"));
+            Enumeration keys = curr.propertyNames();
+            Map<String, String> currencyMap = new HashMap<String, String>();
+
+            while (keys.hasMoreElements()) {
+                String key = (String) keys.nextElement();
+                String value = curr.getProperty(key);
+                currencyMap.put(key, value);
+            }
+
+            for (Map.Entry mapElement : currencyMap.entrySet()) {
+                String key = (String) mapElement.getKey();
+
+                if(key.equals("USD")) {
+                    String value = (String) mapElement.getValue();
+                    String dropdownValue = key + ": " + value;
+                    from.addItem(dropdownValue);
+                }
+            }
+        }
+        catch (IOException ex){
+            ex.printStackTrace();
+        }
+    }
 
     public static void populateCurrencyDropdown(JComboBox convert) {
         Properties curr = new Properties();
@@ -29,9 +57,11 @@ public class ConverterFunctions {
 
             for (Map.Entry mapElement : currencyMap.entrySet()) {
                 String key = (String) mapElement.getKey();
-                String value = (String) mapElement.getValue();
-                String dropdownValue = key + ": " + value;
-                convert.addItem(dropdownValue);
+                if(!key.equals("USD")) {
+                    String value = (String) mapElement.getValue();
+                    String dropdownValue = key + ": " + value;
+                    convert.addItem(dropdownValue);
+                }
             }
         }
         catch (IOException ex){
@@ -51,9 +81,12 @@ public class ConverterFunctions {
 
         for (Map.Entry mapElement : currencyMap.entrySet()) {
             String key = (String) mapElement.getKey();
-            String value = (String) mapElement.getValue();
-            String dropdownValue = key + ": " + value;
-            currency.addItem(dropdownValue);
+
+            if(!key.equals("USD")) {
+                String value = (String) mapElement.getValue();
+                String dropdownValue = key + ": " + value;
+                currency.addItem(dropdownValue);
+            }
         }
     }
 
@@ -102,8 +135,18 @@ public class ConverterFunctions {
         }
     }
 
-    public static void addExchangeRate(Properties exchange, Properties currency, String abbrv) {
+    public static void addExchangeRate(Properties exchange, Properties currency, String abbrv, String rate) {
+        String exchangeKey = "USD." + abbrv;
 
+        exchange.setProperty(exchangeKey, rate);
+
+        try {
+            OutputStream os = new FileOutputStream("exchangeRate.properties");
+            exchange.store(os, null);
+        }
+        catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
     public static void edit() {
